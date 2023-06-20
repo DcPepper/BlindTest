@@ -1,0 +1,429 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Blind Test</title>
+    <link rel="stylesheet" href="{% static '/style/css.css' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+</head>
+
+<body class="container vh-100">
+    <h1 class="title text-center">30 ans de Juju: Le Test Aveugle ! 🎉</h1>
+    <div class="logged container fs-1 d-flex flex-column align-content-center text-center">
+        <div class="row d-flex justify-content-center">Joueurs connectés:</div>
+        <div class="row ul d-flex justify-content-center">
+
+        </div>
+    </div>
+
+    <div class="answer invisible p-3">
+        <div class="d-flex flex-column align-content-center justify-content-around">
+            <input class="h-75 text-center fs-1" type="text" id="answer" placeholder="Réponse" />
+            <button class="h-25 mt-2 fs-1 btn btn-secondary" id="sendAnswer">OK</button>
+        </div>
+    </div>
+
+    <div class="invisible displayAnswer">
+        <div class="row answerField h-75 d-flex justify-content-center align-content-center"></div>
+        <div class="row validate d-flex flex-column align-content-center">
+            <div class="answered text-center m-1"></div>
+            <div class="">
+                <div id="validateOption" class="good col-3">OUI</div>
+            </div>
+            <button id="validate" class="btn btn-secondary m-1">SUIVANT</button>
+        </div>
+    </div>
+
+    <div class="progress invisible"></div>
+
+    <div class="invisible waiting justify-content-center align-items-center display-1 fs-1 bg-light shadow">
+        Correction en cours...
+    </div>
+    </div>
+
+    {{ room_name|json_script:"room-name" }}
+    <script>
+        const roomName = JSON.parse(document.getElementById('room-name').textContent);
+
+
+        const chatSocket = new WebSocket(
+            'ws://'
+            + window.location.host
+            + '/ws/chat/'
+            + roomName
+            + '/'
+        );
+
+        var userList = new Set();
+        var currPlayer = 0;
+
+
+
+        chatSocket.onmessage = function (e) {
+
+            var data = e.data;
+            data = JSON.parse(e.data);
+            console.log(data);
+            if (data.hasOwnProperty("notify")) {
+
+                let newUser = data["notify"];
+
+                if (newUser == "" && !userList.has(localStorage["username"])) {
+                    var ul = document.querySelector(".ul");
+                    var li = document.createElement("div");
+                    li.classList.add("li");
+                    li.classList.add("border");
+                    li.classList.add("border-success");
+                    li.classList.add("col-2");
+                    li.classList.add("m-1");
+                    li.classList.add("bg-success");
+                    li.textContent = localStorage["username"];
+                    ul.appendChild(li);
+                    userList.add(localStorage["username"])
+                    chatSocket.send(JSON.stringify({
+                        'notify': localStorage["username"]
+                    }));
+                }
+                else if (newUser != "" && !userList.has(newUser)) {
+                    var ul = document.querySelector(".ul");
+                    var li = document.createElement("div");
+                    li.classList.add("li");
+                    li.classList.add("border");
+                    li.classList.add("border-success");
+                    li.classList.add("col-2");
+                    li.classList.add("m-1");
+                    li.textContent = newUser;
+                    ul.appendChild(li);
+                    userList.add(newUser);
+                }
+
+                else if (newUser == "" && userList.size != 0) {
+                    chatSocket.send(JSON.stringify({
+                        'notify': localStorage["username"]
+                    }));
+                }
+
+            } else if (data.hasOwnProperty("close")) {
+                let quitUser = data["close"];
+                userList.delete(quitUser);
+                let ul = document.querySelector(".ul");
+                let childToRemove = [...ul.childNodes].filter(e => e.textContent == quitUser)[0];
+                ul.removeChild(childToRemove);
+            } else if (data.hasOwnProperty("next")) {
+                console.log("next");
+                document.querySelector("#sendAnswer").disabled = false;
+                document.querySelector(".progress").classList.toggle("invisible");
+                document.querySelector(".progress").classList.toggle("chrono");
+                document.querySelector(".answer").classList.toggle("invisible");
+                document.querySelector(".answer").classList.toggle("row");
+                document.querySelector(".answer").classList.toggle("h-50");
+                document.querySelector(".answer").classList.toggle("d-flex");
+                document.querySelector(".answer").classList.toggle("justify-content-center");
+                if (cookie != "AA6895059A93F2ACDE603B8413E048E9" && !document.querySelector(".waiting").classList.contains("invisible")) {
+                    document.querySelector(".waiting").classList.toggle("invisible");
+                    document.querySelector(".waiting").classList.toggle("h-50");
+                    document.querySelector(".waiting").classList.toggle("d-flex");
+                }
+
+
+            } else if (data.hasOwnProperty("endGame")) {
+                console.log("fin de partie");
+                [...document.body.childNodes].forEach(e => e.classList = ["invisible"]);
+                if (cookie != "AA6895059A93F2ACDE603B8413E048E9") {
+                    end = document.createElement("div");
+                    end.textContent = "Fin de la partie !\nLes résultats sont sur l'écran de Toto";
+                    document.body.appendChild(end);
+                } else {
+                    document.querySelector("#table").classList.toggle("invisible");
+                }
+
+            } else if (data.hasOwnProperty("answer")) {
+                let answers = data["answer"];
+                if (cookie == "AA6895059A93F2ACDE603B8413E048E9") {
+                    [user, answer] = answers.split(":");
+                    userAnswers[user] = answer
+
+                    everyoneAnswered = Object.values(userAnswers).reduce((a, b) => a && b != "", true);
+                    if (everyoneAnswered) {
+                        console.log("stop");
+                        audio.pause();
+                        document.querySelector(".displayAnswer").classList.toggle("invisible");
+                        document.querySelector(".displayAnswer").classList.toggle("container");
+                        document.querySelector(".displayAnswer").classList.toggle("h-50");
+
+                        user = Object.keys(userAnswers)[currPlayer];
+                        document.querySelector(".answered").textContent = user + ": " + userAnswers[user];
+                    }
+
+                }
+                else if (document.querySelector(".waiting").classList.contains("invisible") && document.querySelector(".answer").classList.contains("invisible")) {
+                    document.querySelector(".waiting").classList.toggle("invisible");
+                    document.querySelector(".waiting").classList.toggle("h-50");
+                    document.querySelector(".waiting").classList.toggle("d-flex");
+                }
+            } else {
+                data = JSON.parse(e.data);
+                const messageOrder = document.getElementById('usernameDisplay');
+                let users = data["message"];
+                let usersArray = users.split(';');
+
+
+
+                if (usersArray.length > 0 && usersArray[0] != "") {
+                    usersArray.forEach((elt, i) => {
+                        var tr = document.createElement('tr');
+                        var id = document.createElement('td');
+                        id.textContent = i + 1;
+                        var name = document.createElement('td');
+                        name.textContent = elt;
+                        tr.appendChild(id);
+                        tr.appendChild(name);
+                        messageOrder.appendChild(tr);
+                    })
+                }
+            }
+
+        };
+
+        chatSocket.onclose = function (e) {
+            console.error('Chat socket closed unexpectedly');
+            chatSocket.send(JSON.stringify({
+                'close': localStorage["username"]
+            }));
+        };
+
+        const cookie = localStorage.getItem("cookie");
+        var userAnswers = {};
+        var userPoints = {};
+
+        // Envoyer la réponse à tous le monde pour que l'admin la recoive
+        document.querySelector("#sendAnswer").addEventListener("click", () => {
+            document.querySelector(".answer").classList.toggle("invisible");
+            document.querySelector(".answer").classList.toggle("row");
+            document.querySelector(".answer").classList.toggle("h-50");
+            document.querySelector(".answer").classList.toggle("d-flex");
+            document.querySelector(".answer").classList.toggle("justify-content-center");
+            document.querySelector(".progress").classList.toggle("chrono");
+            document.querySelector(".progress").classList.toggle("invisible");
+
+
+            answerTry = document.querySelector("#answer").value || "none";
+            chatSocket.send(JSON.stringify({
+                'answer': localStorage["username"] + ":" + answerTry
+            }));
+            document.querySelector("#answer").value = "";
+
+            document.querySelector("#sendAnswer").disabled = true;
+        });
+
+        var chrono = document.querySelector(".progress");
+        chrono.addEventListener("animationend", () => {
+            document.querySelector("#sendAnswer").click();
+
+
+        })
+
+        if (cookie == "AA6895059A93F2ACDE603B8413E048E9") {
+
+            div = document.createElement("div");
+            div.classList.add("row");
+            document.body.appendChild(div);
+            buttonStart = document.createElement("button");
+            buttonStart.classList.add("btn", "btn-primary");
+
+            buttonStart.textContent = "START";
+            buttonStart.addEventListener("click", (e) => {
+                e.target.classList.toggle("invisible");
+                var userAnswerss = [...userList].reduce((dic, user) => {
+                    dic[user] = "";
+                    return dic;
+                }, {});
+
+                var userPointss = [...userList].reduce((dic, user) => {
+                    dic[user] = 0;
+                    return dic;
+                }, {});
+                userAnswers = userAnswerss;
+                userPoints = userPointss;
+
+
+
+                table = document.createElement("div");
+                table.id = "table";
+                table.classList.add("table", "table-primary", "invisible", "d-flex", "flex-column");
+                tr = document.createElement("div");
+                tr.classList.add("trCustom", "translate");
+                thDiese = document.createElement("div");
+                thDiese.classList.add("th")
+                thUser = document.createElement("div");
+                thUser.classList.add("th")
+                thPoint = document.createElement("div");
+                thPoint.classList.add("th")
+                thDiese.textContent = "#";
+                thUser.textContent = "User";
+                thPoint.textContent = "Points";
+                tr.appendChild(thDiese);
+                tr.appendChild(thUser);
+                tr.appendChild(thPoint);
+                table.appendChild(tr);
+                let rank = Object.entries(userPoints).sort((a, b) => b[1] - a[1]);
+                rank.forEach((user, i) => {
+                    tr = document.createElement("div");
+                    tr.id = user[0];
+                    tr.classList.add("trCustom", "translate", String(i + 1));
+                    thDiese = document.createElement("div");
+                    thDiese.classList.add("td");
+                    thUser = document.createElement("div");
+                    thUser.classList.add("td");
+                    thPoint = document.createElement("div");
+                    thPoint.classList.add("td");
+                    thDiese.textContent = i + 1;
+                    thPoint.textContent = user[1];
+
+                    thUser.textContent = user[0];
+
+                    tr.appendChild(thDiese);
+                    tr.appendChild(thUser);
+                    tr.appendChild(thPoint);
+                    table.appendChild(tr);
+                })
+                document.body.appendChild(table);
+                var nextButton = document.createElement("button");
+                nextButton.textContent = "OK";
+                nextButton.classList.add("invisible", "nextMusic", "btn", "btn-primary");
+                nextButton.addEventListener("click", () => {
+                    document.querySelector(".nextMusic").classList.toggle("invisible");
+                    document.querySelector(".table").classList.toggle("invisible");
+
+                    document.querySelector(".NEXT").click();
+                })
+                document.body.appendChild(nextButton);
+
+                document.querySelector(".NEXT").click();
+
+
+
+            });
+            div.appendChild(buttonStart);
+
+            var answerMusic = [
+                "Roxanne - Moulin Rouge",
+                "Clint Eastwood - Gorillaz",
+                "Sultans of Swing - Dire Straits",
+                "Nothing Else Matters - Metallica",
+                "Don't Cry - Gun N Roses"
+            ]
+
+            var nbrMusic = 5;
+            var currMusic = -1;
+            var audio = new Audio(`{% static 'chat/music${currMusic + 1}.mp3' %}`);
+            let btnAudio = document.createElement("button");
+            btnAudio.textContent = "NEXT";
+            btnAudio.classList.add("NEXT");
+            btnAudio.classList.add("invisible");
+            btnAudio.addEventListener("click", async () => {
+                try {
+                    currMusic++;
+                    if (currMusic < nbrMusic) {
+                        document.querySelector(".answerField").textContent = "Réponse: " + answerMusic[currMusic];
+                        songName = `chat/music${currMusic + 1}.mp3`;
+                        src = `/static/${songName}`;
+                        audio.src = src;
+                        await audio.play();
+
+                        chatSocket.send(JSON.stringify({
+                            'next': ""
+                        }));
+                    } else {
+                        chatSocket.send(JSON.stringify({
+                            'endGame': ""
+                        }));
+                    }
+
+                } catch (err) {
+                }
+            })
+            document.body.appendChild(btnAudio);
+
+            function updateTable() {
+                ranks = Object.entries(userPoints).sort((a, b) => b[1] - a[1]);
+
+                ranks.forEach((elt, i) => {
+                    let line = document.querySelector("#" + elt[0]);
+                    let prevRank = line.classList[2];
+                    let translateX = parseInt(prevRank) - (i + 1);
+                    line.style.setProperty('--translateX', `${-translateX * 2}em`);
+                    line.childNodes[2].textContent = elt[1];
+                    line.childNodes[0].textContent = i + 1;
+                })
+
+
+            }
+
+
+        }
+
+        document.querySelector("#validate").onclick = function (e) {
+            points = document.querySelector("#validateOption").textContent == "OUI" ? 2 : document.querySelector("#validateOption").textContent == "BOF" ? 1 : 0;
+            document.querySelector("#validateOption").classList = ["good col-3"];
+            document.querySelector("#validateOption").textContent = "OUI";
+            userPoints[Object.keys(userAnswers)[currPlayer]] += points;
+            currPlayer++;
+            nbrPlayer = userList.size;
+            if (currPlayer == nbrPlayer - 1) {
+                user = Object.keys(userAnswers)[currPlayer];
+                document.querySelector(".answered").textContent = user + ": " + userAnswers[user];
+                document.querySelector("#validate").textContent = "MUSIQUE SUIVANTE";
+            } else if (currPlayer == nbrPlayer) {
+                currPlayer = 0;
+                Object.keys(userAnswers).forEach(key => userAnswers[key] = "");
+                if (currMusic < 4) {
+                    document.querySelector(".table").classList.toggle("invisible");
+                }
+
+                document.querySelector(".nextMusic").classList.toggle("invisible");
+                document.querySelector("#validate").textContent = "SUIVANT";
+                document.querySelector(".displayAnswer").classList.toggle("invisible");
+                document.querySelector(".displayAnswer").classList.toggle("container");
+                document.querySelector(".displayAnswer").classList.toggle("h-50");
+                updateTable();
+                console.log("update");
+
+
+            } else {
+                user = Object.keys(userAnswers)[currPlayer];
+                document.querySelector(".answered").textContent = user + ": " + userAnswers[user];
+
+            }
+
+        }
+
+        document.querySelector("#validateOption").addEventListener("click", (e) => {
+            if (document.querySelector("#validateOption").classList.contains("good")) {
+                document.querySelector("#validateOption").classList.toggle("good");
+                document.querySelector("#validateOption").classList.toggle("bof");
+            } else if (document.querySelector("#validateOption").classList.contains("bof")) {
+                document.querySelector("#validateOption").classList.toggle("bof");
+                document.querySelector("#validateOption").classList.toggle("wrong");
+            } else {
+                document.querySelector("#validateOption").classList.toggle("wrong");
+                document.querySelector("#validateOption").classList.toggle("good");
+            }
+
+            e.target.textContent = e.target.textContent == "OUI" ? "BOF" : e.target.textContent == "BOF" ? "NON" : "OUI";
+        });
+
+
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+        integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"
+        integrity="sha384-fbbOQedDUMZZ5KreZpsbe1LCZPVmfTnH7ois6mU1QK+m14rQ1l2bGBq41eYeM/fS"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>

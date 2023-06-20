@@ -1,0 +1,97 @@
+.ul {
+    display: flex;
+    justify-content: space-around;
+}
+
+.invisible {
+    display: none !important;
+}
+
+#validateOption {
+    cursor: pointer;
+    text-align: center;
+    transition: all .3s ease-in;
+
+}
+
+.validate {
+    display: flex;
+    flex-direction: column;
+}
+
+.good {
+    background-color: green;
+    transform: translateX(0);
+}
+
+.wrong {
+    background-color: red;
+    transform: translateX(300%);
+}
+
+.bof {
+    background-color: yellow;
+    transform: translateX(150%);
+}
+
+.answerField {
+    font-weight: bold;
+}
+
+.chrono {
+    height: 5vh;
+    width: 100%;
+    border: 1px solid black;
+    position: relative;
+}
+
+.chrono::after {
+    content: "";
+    z-index: 1;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    top: 0;
+    background-color: black;
+    animation: load 20s;
+    animation-fill-mode: forwards;
+    animation-timing-function: linear;
+}
+
+@keyframes load {
+    from {
+        right: 100%;
+    }
+
+    to {
+        right: 0;
+    }
+
+}
+
+input:focus {
+    outline: none !important;
+    border: 1px solid pink;
+    box-shadow: 0 0 10px red;
+}
+
+.PINK {
+    background-image: url("https://img.freepik.com/vecteurs-premium/illustration-icone-debout-licorne-mignon-personnage-dessin-anime-mascotte-licorne-concept-icone-animal-blanc-isole_138676-831.jpg?w=2000");
+    background-size: 100%;
+}
+
+.trCustom {
+    border: 1px black solid !important;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    gap: 1em;
+    height: 2em;
+}
+
+.translate {
+    transition-property: transform;
+    transition-duration: 1s;
+    transition-timing-function: ease-in-out;
+    transform: translateY(var(--translateX));
+}
