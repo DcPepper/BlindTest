@@ -10,7 +10,7 @@
         integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
 </head>
 
-<body class="container vh-100">
+<body class="body container vh-100">
     <h1 class="title text-center">30 ans de Juju: Le Test Aveugle ! 🎉</h1>
     <div class="logged container fs-1 d-flex flex-column align-content-center text-center">
         <div class="row d-flex justify-content-center">Joueurs connectés:</div>
@@ -27,8 +27,12 @@
     </div>
 
     <div class="invisible displayAnswer">
-        <div class="row answerField h-75 d-flex justify-content-center align-content-center"></div>
-        <div class="row validate d-flex flex-column align-content-center">
+        <div class="row h-75 image">
+            <div class="row yearField h-25 d-flex justify-content-center align-content-center text-center"></div>
+            <div class="row nameField h-25 d-flex justify-content-center align-content-center text-center"></div>
+            <div class="row authorField h-25 d-flex justify-content-center align-content-center text-center"></div>
+        </div>
+        <div class="row validate h-25 d-flex flex-column align-content-center">
             <div class="answered text-center m-1"></div>
             <div class="">
                 <div id="validateOption" class="good col-3">OUI</div>
@@ -52,7 +56,7 @@
         const chatSocket = new WebSocket(
             'ws://'
             + window.location.host
-            + '/ws/chat/'
+            + '/ws/'
             + roomName
             + '/'
         );
@@ -115,8 +119,13 @@
             } else if (data.hasOwnProperty("next")) {
                 console.log("next");
                 document.querySelector("#sendAnswer").disabled = false;
-                document.querySelector(".progress").classList.toggle("invisible");
-                document.querySelector(".progress").classList.toggle("chrono");
+                if (!document.querySelector(".progress").classList.contains("invisible")) {
+                    document.querySelector(".progress").classList.toggle("invisible");
+                    if (document.querySelector(".progress").classList.contains("chrono")) {
+                        document.querySelector(".progress").classList.toggle("chrono");
+                    }
+                }
+
                 document.querySelector(".answer").classList.toggle("invisible");
                 document.querySelector(".answer").classList.toggle("row");
                 document.querySelector(".answer").classList.toggle("h-50");
@@ -142,6 +151,11 @@
 
             } else if (data.hasOwnProperty("answer")) {
                 let answers = data["answer"];
+                if (document.querySelector("#sendAnswer").disabled == false) {
+                    document.querySelector(".progress").classList.toggle("invisible");
+                    document.querySelector(".progress").classList.toggle("chrono");
+                }
+
                 if (cookie == "AA6895059A93F2ACDE603B8413E048E9") {
                     [user, answer] = answers.split(":");
                     userAnswers[user] = answer
@@ -152,7 +166,13 @@
                         audio.pause();
                         document.querySelector(".displayAnswer").classList.toggle("invisible");
                         document.querySelector(".displayAnswer").classList.toggle("container");
-                        document.querySelector(".displayAnswer").classList.toggle("h-50");
+                        document.querySelector(".displayAnswer").classList.toggle("h-75");
+                        thisMusic = answerMusic[currMusic];
+                        thisBackground = thisMusic.replace(".mp3", ".jpg");
+                        console.log(thisBackground);
+                        source = "/static/chat/" + thisBackground
+                        document.querySelector(".image").style.backgroundImage = `url('${source}')`;
+                        document.querySelector(".image").style.backgroundSize = "auto";
 
                         user = Object.keys(userAnswers)[currPlayer];
                         document.querySelector(".answered").textContent = user + ": " + userAnswers[user];
@@ -206,8 +226,11 @@
             document.querySelector(".answer").classList.toggle("h-50");
             document.querySelector(".answer").classList.toggle("d-flex");
             document.querySelector(".answer").classList.toggle("justify-content-center");
-            document.querySelector(".progress").classList.toggle("chrono");
-            document.querySelector(".progress").classList.toggle("invisible");
+            if (document.querySelector(".progress").classList.contains("chrono")) {
+                document.querySelector(".progress").classList.toggle("chrono");
+                document.querySelector(".progress").classList.toggle("invisible");
+            }
+
 
 
             answerTry = document.querySelector("#answer").value || "none";
@@ -253,7 +276,7 @@
 
                 table = document.createElement("div");
                 table.id = "table";
-                table.classList.add("table", "table-primary", "invisible", "d-flex", "flex-column");
+                table.classList.add("table", "table-primary", "invisible", "flex-column");
                 tr = document.createElement("div");
                 tr.classList.add("trCustom", "translate");
                 thDiese = document.createElement("div");
@@ -297,6 +320,7 @@
                 nextButton.addEventListener("click", () => {
                     document.querySelector(".nextMusic").classList.toggle("invisible");
                     document.querySelector(".table").classList.toggle("invisible");
+                    document.querySelector(".table").classList.toggle("d-flex");
 
                     document.querySelector(".NEXT").click();
                 })
@@ -309,17 +333,23 @@
             });
             div.appendChild(buttonStart);
 
-            var answerMusic = [
-                "Roxanne - Moulin Rouge",
-                "Clint Eastwood - Gorillaz",
-                "Sultans of Swing - Dire Straits",
-                "Nothing Else Matters - Metallica",
-                "Don't Cry - Gun N Roses"
-            ]
+            var answerMusic = ['1993_Whitney Houston_I Will Always Love You.mp3', '1994_Oasis_Supersonic.mp3', "1995_Coolio (feat. L.V.)_Gangstas Paradise.mp3", '1996_Los Del Rio_Macarena.mp3', '1997_Notre Dame De Paris_Belle.mp3', '1998_Manau_La tribu de Dana.mp3', '1999_Britney Spears_Baby One More Time.mp3', '2000_Alizée_Moi... Lolita.mp3', '2001_Gorilla_Clint Eastwood.mp3', '2002_Red Hot Chili Peppers_By The Way.mp3', '2003_Tryo_Monsieur Bibendum.mp3', '2004_Black Bomb A_Mary.mp3', '2005_Olivia Ruiz_La Femme Chocolat.mp3', '2006_SOPRANO FEAT. BLACKO_FERME LES YEUX ET IMAGINE-TOI.mp3', '2007_Avril Lavigne_Girlfriend.mp3', '2008_Beyoncé_If I Were A Boy.mp3', "2009_Helmut Fritz_Ca ménerve.mp3", '2010_Eminem ft. Rihanna_Love The Way You Lie.mp3', '2011_Adele_Rolling in the Deep.mp3', '2012_Gotye (feat. Kimbra)_Somebody That I Used To Know.mp3', '2013_Bruno Mars_When I Was Your Man.mp3', '2014_Pharrell Williams_Happy.mp3', '2015_OMI_CHEERLEADER.mp3', '2016_JUL_Tchikita.mp3', '2017_Ed Sheeran_Shape of You.mp3', '2018_Lady Gaga, Bradley Cooper_Shallow.mp3', '2019_Lil Nas X ft. Billy Ray Cyrus_Old Town Road.mp3', '2020_BTS_Dynamite.mp3', '2021_Olivia Rodrigo_drivers license.mp3', '2022_Stromae_Lenfer.mp3', '2023_Miley Cyrus_Flowers.mp3', '1_Là-haut.mp3', '2_Buffy Contre Les Vampires.mp3', '3_Reservoir Dogs.mp3', '4_Le Seigneur Des Anneaux.mp3', "5_Excalibur lépée magique.mp3", '6_Django.mp3', '7_Katana Zero.mp3', '8_Game of Thrones.mp3', '9_Mulan.mp3', '10_Sherlock Holmes.mp3', '11_Kill Bill.mp3', '12_Hades.mp3', '13_Le Roi Lion.mp3', '14_Dexter.mp3', '15_Le Lutin Magique.mp3', '16_Lilo et Stitch.mp3', '17_Zelda.mp3', '18_Scrubs.mp3', '19_Le voyage de Chihiro.mp3', '20_Harry Potter.mp3', "21_LEtrange Noel de Monsieur Jack.mp3", '22_One Piece.mp3', '23_Kungfu Panda.mp3', '24_Drive.mp3', '25_Shreck.mp3', '26_Pirates des Caraibes.mp3', '27_VVVVVV.mp3', '28_Toy Story.mp3', '29_Star Wars.mp3', '30_Moulin Rouge.mp3']
 
-            var nbrMusic = 5;
+            var nbrMusic = 61;
             var currMusic = -1;
-            var audio = new Audio(`{% static 'chat/music${currMusic + 1}.mp3' %}`);
+            if (currMusic == -1) {
+                var audio = new Audio(`{% static 'chat/music0.mp3' %}`);
+                audio.loop = true;
+                waitingRoom = document.createElement("div");
+                waitingRoom.id = "waitingRoom";
+                waitingRoom.textContent = "?"
+                waitingRoom.onclick = function () {
+                    document.querySelector("#waitingRoom").classList.toggle("invisible")
+                    audio.play();
+                }
+                document.body.appendChild(waitingRoom);
+            }
+
             let btnAudio = document.createElement("button");
             btnAudio.textContent = "NEXT";
             btnAudio.classList.add("NEXT");
@@ -328,8 +358,23 @@
                 try {
                     currMusic++;
                     if (currMusic < nbrMusic) {
-                        document.querySelector(".answerField").textContent = "Réponse: " + answerMusic[currMusic];
-                        songName = `chat/music${currMusic + 1}.mp3`;
+                        song = answerMusic[currMusic];
+                        if (currMusic < 31) {
+                            console.log(song);
+                            reponse = song.split('_');
+                            document.querySelector(".yearField").innerHTML = "<h2>" + reponse[0] + "</h2>";
+                            document.querySelector(".nameField").innerHTML = "<h1>" + reponse[2].split('.mp3')[0] + "</h1>";
+                            document.querySelector(".authorField").innerHTML = "de " + "<h3>" + reponse[1] + "</h3>";
+
+                        } else {
+                            reponse = song.split('_');
+                            document.querySelector(".yearField").innerHTML = "<h2> Numéro:" + reponse[0] + "</h2>";
+                            document.querySelector(".nameField").innerHTML = "";
+                            document.querySelector(".authorField").innerHTML = "<h3>" + reponse[1].split('.mp3')[0] + "</h3>";
+                        }
+
+
+                        songName = `chat/${song}`;
                         src = `/static/${songName}`;
                         audio.src = src;
                         await audio.play();
@@ -380,15 +425,16 @@
             } else if (currPlayer == nbrPlayer) {
                 currPlayer = 0;
                 Object.keys(userAnswers).forEach(key => userAnswers[key] = "");
-                if (currMusic < 4) {
+                if (currMusic < nbrMusic - 1) {
                     document.querySelector(".table").classList.toggle("invisible");
+                    document.querySelector(".table").classList.toggle("d-flex");
                 }
 
                 document.querySelector(".nextMusic").classList.toggle("invisible");
                 document.querySelector("#validate").textContent = "SUIVANT";
                 document.querySelector(".displayAnswer").classList.toggle("invisible");
                 document.querySelector(".displayAnswer").classList.toggle("container");
-                document.querySelector(".displayAnswer").classList.toggle("h-50");
+                document.querySelector(".displayAnswer").classList.toggle("h-75");
                 updateTable();
                 console.log("update");
 

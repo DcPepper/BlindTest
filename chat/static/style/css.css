@@ -95,3 +95,30 @@ input:focus {
     transition-timing-function: ease-in-out;
     transform: translateY(var(--translateX));
 }
+
+html,
+.body {
+    background: linear-gradient(-45deg, pink, rgb(140, 168, 254), pink);
+    background-size: 400% 400%;
+    animation: gradient-bg 20s ease infinite;
+
+}
+
+.image {
+    color: white;
+    text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+}
+
+@keyframes gradient-bg {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
