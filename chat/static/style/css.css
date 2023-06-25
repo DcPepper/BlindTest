@@ -85,15 +85,35 @@ input:focus {
     box-sizing: border-box;
     display: flex;
     flex-direction: row;
+    justify-content: space-evenly;
     gap: 1em;
     height: 2em;
 }
 
+.head {
+    background: pink;
+}
+
 .translate {
     transition-property: transform;
-    transition-duration: 1s;
+    transition-duration: 2s;
     transition-timing-function: ease-in-out;
     transform: translateY(var(--translateX));
+}
+
+.reveal {
+    opacity: 0;
+    animation: reveal 1s ease-in var(--duration) forwards;
+}
+
+@keyframes reveal {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
 }
 
 html,
@@ -121,4 +141,13 @@ html,
     100% {
         background-position: 0% 50%;
     }
+}
+
+.td {
+    width: 30%;
+}
+
+.th {
+    width: 30%;
+    font-weight: bold;
 }
